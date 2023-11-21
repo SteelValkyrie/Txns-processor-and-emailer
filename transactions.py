@@ -1,3 +1,4 @@
+import os
 import csv
 from datetime import datetime
 import smtplib, ssl
@@ -64,8 +65,12 @@ def process_transactions_and_send_email(transactions: list[dict]) -> None:
     }
 
     port = 465  # For SSL
-    email = input("Type your email and press enter: ")
-    password = input("Type your password and press enter: ")
+    email = os.environ.get("EMAIL", None)
+    if email is None:
+        raise ValueError("Email not found in environment variables")
+    password = os.environ.get("APP_PASSWORD", None)
+    if password is None:
+        raise ValueError("App password not found in environment variables")
     user, domain = email.split("@")
     customer_email = f"{user}+customer@{domain}"
 
