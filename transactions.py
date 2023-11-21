@@ -51,6 +51,9 @@ def process_transactions_and_send_email(transactions: list[dict]) -> None:
             debit_by_month[date.strftime("%B")] += transaction_amount
             total_debit += transaction_amount
 
+    avg_credit_amount = total_credit / len(credit_by_month)
+    avg_debit_amount = total_debit / len(debit_by_month)
+
     avg_credit_by_month = {
         month: credit / transactions_by_month[month]
         for month, credit in credit_by_month.items()
@@ -77,122 +80,39 @@ def process_transactions_and_send_email(transactions: list[dict]) -> None:
     avg_credit_by_month = dict(avg_credit_by_month)
     avg_debit_by_month = dict(avg_debit_by_month)
 
-    text = """
-    Your total balance is {}.
+    text = f"Total balance: {total_balance:.2f}\n\n"
 
-    Transactions by month:
-    {}
+    for month, num_transactions in transactions_by_month.items():
+        text += f"Number of transactions in {month}: {num_transactions}\n"
+        text += f"Average credit in {month}: {avg_credit_by_month[month]:.2f}\n"
+        text += f"Average debit in {month}: {avg_debit_by_month[month]:.2f}\n\n"
 
-    Credits by month:
-    {}
+    text += f"Total credit: {total_credit:.2f}\n"
+    text += f"Total debit: {total_debit:.2f}\n\n"
+    text += f"Average credit: {avg_credit_amount:.2f}\n"
+    text += f"Average debit: {avg_debit_amount:.2f}\n"
 
-    Debits by month:
-    {}
-
-    Average credit by month:
-    {}
-
-    Average debit by month:
-    {}
-
-    Your total credit is {}.
-    Your total debit is {}.
-    """.format(
-        total_balance,
-        "\n".join(
-            [
-                f"{month}: {count} transactions"
-                for month, count in transactions_by_month.items()
-            ]
-        ),
-        "\n".join(
-            [f"{month}: ${credit:.2f}" for month, credit in credit_by_month.items()]
-        ),
-        "\n".join(
-            [f"{month}: ${debit:.2f}" for month, debit in debit_by_month.items()]
-        ),
-        "\n".join(
-            [f"{month}: ${avg:.2f}" for month, avg in avg_credit_by_month.items()]
-        ),
-        "\n".join(
-            [f"{month}: ${avg:.2f}" for month, avg in avg_debit_by_month.items()]
-        ),
-        total_credit,
-        total_debit,
-    )
-
-    html = """
+    html = f"""
     <html>
         <body>
-            <p>Your total balance is {}.</p>
-            
-            <p>Transactions by month:</p>
-            <ul>
-                {}
-            </ul>
+            <p>Total balance: {total_balance:.2f}</p>
+    """
 
-            <p>Credits by month:</p>
-            <ul>
-                {}
-            </ul>
+    for month, num_transactions in transactions_by_month.items():
+        html += f"<p>Number of transactions in {month}: {num_transactions}</p>"
+        html += f"<p>Average credit in {month}: {avg_credit_by_month[month]:.2f}</p>"
+        html += f"<p>Average debit in {month}: {avg_debit_by_month[month]:.2f}</p>"
 
-            <p>Debits by month:</p>
-            <ul>
-                {}
-            </ul>
+    html += f"<p>Total credit: {total_credit:.2f}</p>"
+    html += f"<p>Total debit: {total_debit:.2f}</p>"
+    html += f"<p>Average credit: {avg_credit_amount:.2f}</p>"
+    html += f"<p>Average debit: {avg_debit_amount:.2f}</p>"
 
-            <p>Average credit by month:</p>
-            <ul>
-                {}
-            </ul>
-
-            <p>Average debit by month:</p>
-            <ul>
-                {}
-            </ul>
-
-            <p>Your total credit is ${:.2f}.</p>
-            <p>Your total debit is ${:.2f}.</p>
-
-            <img src="https://blog.storicard.com/wp-content/uploads/2019/07/Stori-horizontal-11.jpg" alt="Stori" style="width: 300px; height: 100px;">
-
+    html += """
+        <img src="https://blog.storicard.com/wp-content/uploads/2019/07/Stori-horizontal-11.jpg" alt="Stori" style="width: 300px; height: 100px;">
         </body>
     </html>
-    """.format(
-        total_balance,
-        "".join(
-            [
-                f"<li>{month}: {count} transactions</li>"
-                for month, count in transactions_by_month.items()
-            ]
-        ),
-        "".join(
-            [
-                f"<li>{month}: ${credit:.2f}</li>"
-                for month, credit in credit_by_month.items()
-            ]
-        ),
-        "".join(
-            [
-                f"<li>{month}: ${debit:.2f}</li>"
-                for month, debit in debit_by_month.items()
-            ]
-        ),
-        "".join(
-            [
-                f"<li>{month}: ${avg:.2f}</li>"
-                for month, avg in avg_credit_by_month.items()
-            ]
-        ),
-        "".join(
-            [
-                f"<li>{month}: ${avg:.2f}</li>"
-                for month, avg in avg_debit_by_month.items()
-            ]
-        ),
-        total_credit,
-        total_debit,
-    )
+    """
 
     part1 = MIMEText(text, "plain")
     part2 = MIMEText(html, "html")
