@@ -11,7 +11,16 @@ import io
 
 
 def lambda_handler(event, context):
-    # Function to be executed by AWS Lambda
+    """
+    Function to be executed by AWS Lambda.
+
+    Args:
+        event: A dictionary containing information about the event that triggered
+            the AWS Lambda function, for our case including the S3 bucket name and
+            the object key.
+        context: A LambdaContext object containing information about the context
+            in which the AWS Lambda function was executed.
+    """
     s3_client = boto3.client("s3")
     S3_BUCKET = event["Records"][0]["s3"]["bucket"]["name"]
     object_key = event["Records"][0]["s3"]["object"]["key"]
@@ -33,6 +42,7 @@ def read_transactions(filename: str) -> list[dict]:
         filename: The name of the CSV file to read from.
 
     Returns:
+        A list of transaction dictionaries.
 
     """
     with open(filename, "r", encoding="utf-8") as f:
@@ -46,6 +56,7 @@ def process_transactions_and_send_email(transactions: list[dict]) -> None:
     Processes transactions and sends email to customers.
 
     Args:
+        transactions: A list of transaction dictionaries.
 
     """
     total_balance = 0
