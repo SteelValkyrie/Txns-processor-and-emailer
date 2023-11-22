@@ -5,6 +5,24 @@ import smtplib, ssl
 from collections import defaultdict
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import boto3
+import csv
+import io
+
+
+def lambda_handler(event, context):
+    # Function to be executed by AWS Lambda
+    s3_client = boto3.client("s3")
+    S3_BUCKET = event["Records"][0]["s3"]["bucket"]["name"]
+    object_key = event["Records"][0]["s3"]["object"]["key"]
+    file_content = (
+        s3_client.get_object(Bucket=S3_BUCKET, Key=object_key)["Body"]
+        .read()
+        .decode("utf-8")
+    )
+    csv_reader = csv.DictReader(io.StringIO(file_content))
+    transactions = [row for row in csv_reader]
+    process_transactions_and_send_email(transactions)
 
 
 def read_transactions(filename: str) -> list[dict]:
